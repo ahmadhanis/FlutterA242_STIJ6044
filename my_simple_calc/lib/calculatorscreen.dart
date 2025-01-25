@@ -22,38 +22,60 @@ class _CalculatorScreenState extends State<CalculatorScreen> {
         body: Container(
           padding: const EdgeInsets.all(20),
           child: Column(children: [
+            Image.asset('assets/calc.png', scale: 3),
+            const SizedBox(height: 20),
             TextField(
               controller: firstNumber,
+              decoration: InputDecoration(
+                hintText: "Enter first number",
+                border: OutlineInputBorder(
+                  borderRadius: BorderRadius.circular(10),
+                ),
+              ),
+              keyboardType: TextInputType.number,
             ),
+            const SizedBox(height: 10),
             TextField(
               controller: secondNumber,
+              decoration: InputDecoration(
+                hintText: "Enter second number",
+                border: OutlineInputBorder(
+                  borderRadius: BorderRadius.circular(10),
+                ),
+              ),
+              keyboardType: TextInputType.number,
             ),
-            Row(
-              mainAxisAlignment: MainAxisAlignment.spaceEvenly,
-              children: [
-                ElevatedButton(
-                    onPressed: () {
-                      addOperation();
-                    },
-                    child: const Text("+")),
-                ElevatedButton(
-                    onPressed: () {
-                      minusOperation();
-                    },
-                    child: const Text("-")),
-                ElevatedButton(
-                    onPressed: () {
-                      multOperation();
-                    },
-                    child: const Text("x")),
-                ElevatedButton(
-                    onPressed: () {
-                      divOperation();
-                    },
-                    child: const Text("/")),
-              ],
+            Padding(
+              padding: const EdgeInsets.fromLTRB(0, 20, 0, 20),
+              child: Row(
+                mainAxisAlignment: MainAxisAlignment.spaceEvenly,
+                children: [
+                  ElevatedButton(
+                      onPressed: () {
+                        addOperation();
+                      },
+                      child: const Text("+")),
+                  ElevatedButton(
+                      onPressed: () {
+                        minusOperation();
+                      },
+                      child: const Text("-")),
+                  ElevatedButton(
+                      onPressed: () {
+                        multOperation();
+                      },
+                      child: const Text("x")),
+                  ElevatedButton(
+                      onPressed: () {
+                        divOperation();
+                      },
+                      child: const Text("/")),
+                ],
+              ),
             ),
-            Text("Result: $result")
+            Text("Result: $result",
+                style:
+                    const TextStyle(fontSize: 20, fontWeight: FontWeight.bold)),
           ]),
         ));
   }

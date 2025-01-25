@@ -1,5 +1,4 @@
 import 'package:flutter/material.dart';
-import 'package:flutter/widgets.dart';
 import 'package:my_simple_calc/calculatorscreen.dart';
 
 void main() {
@@ -25,24 +24,21 @@ class SplashScreen extends StatefulWidget {
 }
 
 class _SplashScreenState extends State<SplashScreen> {
-
   @override
   void initState() {
     // TODO: implement initState
     super.initState();
     Future.delayed(const Duration(seconds: 3), () {
-      Navigator.pushReplacement(
-          context, MaterialPageRoute(builder: (context) => const CalculatorScreen()));
+      Navigator.pushReplacement(context,
+          MaterialPageRoute(builder: (context) => const CalculatorScreen()));
     });
   }
+
   @override
   Widget build(BuildContext context) {
-    return const Scaffold(
+    return Scaffold(
         body: Center(
-      child: Text(
-        'MyCalculator',
-        style: TextStyle(fontSize: 30, fontWeight: FontWeight.bold),
-      ),
+      child: Image.asset('assets/calc.png',scale: 2.5,),
     ));
   }
 }
