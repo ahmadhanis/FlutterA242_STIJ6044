@@ -128,7 +128,9 @@ class _NewTukangScreenState extends State<NewTukangScreen> {
                   SizedBox(
                     width: 400,
                     child: ElevatedButton(
-                      onPressed: () {},
+                      onPressed: () {
+                        onsubmitDialog();
+                      },
                       child: const Text('Submit'),
                     ),
                   ),
@@ -151,5 +153,63 @@ class _NewTukangScreenState extends State<NewTukangScreen> {
       image = File(pickedFile.path);
     }
     setState(() {});
+  }
+
+  void onsubmitDialog() {
+    String name = nameController.text;
+    String email = emailController.text;
+    String phone = phoneController.text;
+
+    if (image == null || name.isEmpty || email.isEmpty || phone.isEmpty) {
+      ScaffoldMessenger.of(context).showSnackBar(
+        const SnackBar(
+          content: Text('Please fill in all required fields'),
+          backgroundColor: Colors.red,
+        ),
+      );
+      return;
+    }
+    if (!email.contains('@') && !email.contains('.')) {
+      ScaffoldMessenger.of(context).showSnackBar(
+        const SnackBar(
+          content: Text('Invalid email address'),
+          backgroundColor: Colors.red,
+        ),
+      );
+      return;
+    }
+    if (phone.length < 10) {
+      ScaffoldMessenger.of(context).showSnackBar(
+        const SnackBar(
+          content: Text('Invalid phone number'),
+          backgroundColor: Colors.red,
+        ),
+      );
+      return;
+    }
+
+    showDialog(
+        context: context,
+        builder: (BuildContext context) {
+          return AlertDialog(
+            title: const Text('Confirmation'),
+            content: const Text('Are you sure you want to submit?'),
+            actions: [
+              TextButton(
+                child: const Text('Cancel'),
+                onPressed: () {
+                  Navigator.of(context).pop();
+                },
+              ),
+              TextButton(
+                child: const Text('Submit'),
+                onPressed: () {
+                  Navigator.of(context).pop();
+                  // submitData(name, email, phone, selectedDistrict);
+                },
+              ),
+            ],
+          );
+        });
   }
 }
