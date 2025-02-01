@@ -1,7 +1,8 @@
+import 'dart:convert';
 import 'dart:io';
 import 'package:flutter/material.dart';
-import 'package:flutter/widgets.dart';
 import 'package:image_picker/image_picker.dart';
+import 'package:http/http.dart' as http;
 
 class NewTukangScreen extends StatefulWidget {
   const NewTukangScreen({super.key});
@@ -205,11 +206,25 @@ class _NewTukangScreenState extends State<NewTukangScreen> {
                 child: const Text('Submit'),
                 onPressed: () {
                   Navigator.of(context).pop();
-                  // submitData(name, email, phone, selectedDistrict);
+                  submitData();
                 },
               ),
             ],
           );
         });
+  }
+
+  void submitData() {
+    String name = nameController.text;
+    String email = emailController.text;
+    String phone = phoneController.text;
+    String base64Image = base64Encode(image!.readAsBytesSync());
+    http.post(Uri.parse('http://10.30.1.48/mytukang/add.php'), body: {
+      'name': name,
+      'email': email,
+      'phone': phone,
+      'district': selectedDistrict,
+      'image': base64Image,
+    }).then((response) {});
   }
 }
