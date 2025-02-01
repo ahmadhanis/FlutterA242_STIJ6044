@@ -1,5 +1,7 @@
 import 'dart:io';
 import 'package:flutter/material.dart';
+import 'package:flutter/widgets.dart';
+import 'package:image_picker/image_picker.dart';
 
 class NewTukangScreen extends StatefulWidget {
   const NewTukangScreen({super.key});
@@ -45,16 +47,21 @@ class _NewTukangScreenState extends State<NewTukangScreen> {
             child: SingleChildScrollView(
               child: Column(
                 children: [
-                  Container(
-                    height: 200,
-                    decoration: BoxDecoration(
-                        border: Border.all(color: Colors.black),
-                        image: DecorationImage(
-                          image: image == null
-                              ? const AssetImage('assets/images/profile.png')
-                              : FileImage(image!) as ImageProvider<Object>,
-                          fit: BoxFit.contain,
-                        )),
+                  GestureDetector(
+                    onTap: () {
+                      openCamera();
+                    },
+                    child: Container(
+                      height: 200,
+                      decoration: BoxDecoration(
+                          border: Border.all(color: Colors.black),
+                          image: DecorationImage(
+                            image: image == null
+                                ? const AssetImage('assets/images/profile.png')
+                                : FileImage(image!) as ImageProvider<Object>,
+                            fit: BoxFit.contain,
+                          )),
+                    ),
                   ),
                   const SizedBox(
                     height: 10,
@@ -130,5 +137,19 @@ class _NewTukangScreenState extends State<NewTukangScreen> {
             ),
           ),
         ));
+  }
+
+  Future<void> openCamera() async {
+    final picker = ImagePicker();
+    final pickedFile = await picker.pickImage(
+      source: ImageSource.camera,
+      maxHeight: 800,
+      maxWidth: 800,
+    );
+
+    if (pickedFile != null) {
+      image = File(pickedFile.path);
+    }
+    setState(() {});
   }
 }
