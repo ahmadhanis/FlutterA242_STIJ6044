@@ -39,11 +39,16 @@ class SplashScreenState extends State<SplashScreen> {
   Widget build(BuildContext context) {
     return const Scaffold(
       body: Center(
-        child: Text(
-          'MyTukang',
-          style: TextStyle(fontSize: 30, fontWeight: FontWeight.bold),
-        ),
-      ),
+          child: Column(
+            mainAxisAlignment: MainAxisAlignment.center,
+        children: [
+          Text(
+            'MyTukang',
+            style: TextStyle(fontSize: 30, fontWeight: FontWeight.bold),
+          ),
+          CircularProgressIndicator()
+        ],
+      )),
     );
   }
 }
