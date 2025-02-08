@@ -31,9 +31,23 @@ class _NewTukangScreenState extends State<NewTukangScreen> {
     'Yan'
   ];
 
-  File? image;
+  var fields = [
+    'Plumber',
+    'Electrician',
+    'Carpenter',
+    'Painter',
+    'Cleaner',
+    'Cook',
+    'Driver',
+    'Builder',
+    'Carpenter',
+    'Other'
+  ];
+
+  var image;
 
   String selectedDistrict = 'Baling';
+  String selectedField = 'Plumber';
 
   @override
   Widget build(BuildContext context) {
@@ -95,6 +109,33 @@ class _NewTukangScreenState extends State<NewTukangScreen> {
                       border: OutlineInputBorder(),
                     ),
                     keyboardType: TextInputType.phone,
+                  ),
+                  const SizedBox(
+                    height: 10,
+                  ),
+                  Container(
+                    height: 60,
+                    padding: const EdgeInsets.symmetric(horizontal: 15),
+                    decoration: BoxDecoration(
+                        border: Border.all(color: Colors.grey),
+                        borderRadius: BorderRadius.circular(5)),
+                    child: DropdownButton(
+                      value: selectedField,
+                      underline: const SizedBox(),
+                      isExpanded: true,
+                      icon: const Icon(Icons.keyboard_arrow_down),
+                      items: fields.map((String items) {
+                        return DropdownMenuItem(
+                          value: items,
+                          child: Text(items),
+                        );
+                      }).toList(),
+                      onChanged: (String? newValue) {
+                        selectedField = newValue!;
+                        print(selectedField);
+                        setState(() {});
+                      },
+                    ),
                   ),
                   const SizedBox(
                     height: 10,
@@ -218,13 +259,17 @@ class _NewTukangScreenState extends State<NewTukangScreen> {
     String name = nameController.text;
     String email = emailController.text;
     String phone = phoneController.text;
-    String base64Image = base64Encode(image!.readAsBytesSync());
-    http.post(Uri.parse('http://10.30.1.48/mytukang/add.php'), body: {
-      'name': name,
-      'email': email,
-      'phone': phone,
-      'district': selectedDistrict,
-      'image': base64Image,
-    }).then((response) {});
+    String base64Image = base64Encode(image.readAsBytesSync());
+    http.post(Uri.parse('http://10.30.1.39/mytukang/api/insert_tukang.php'),
+        body: {
+          'name': name,
+          'email': email,
+          'phone': phone,
+          'field': selectedField,
+          'district': selectedDistrict,
+          'image': base64Image,
+        }).then((response) {
+      print(response.body);
+    });
   }
 }
