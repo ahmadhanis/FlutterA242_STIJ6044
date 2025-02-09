@@ -269,7 +269,25 @@ class _NewTukangScreenState extends State<NewTukangScreen> {
           'district': selectedDistrict,
           'image': base64Image,
         }).then((response) {
-      print(response.body);
+        if (response.statusCode == 200) {
+          var arrayresponse = jsonDecode(response.body);
+          if (arrayresponse['status'] == 'success') {
+            ScaffoldMessenger.of(context).showSnackBar(
+              const SnackBar(
+                content: Text('Tukang submitted successfully'),
+                backgroundColor: Colors.green,
+              ),
+            );
+            Navigator.of(context).pop();
+          }else{
+            ScaffoldMessenger.of(context).showSnackBar(
+              const SnackBar(
+                content: Text('Failed to submit tukang'),
+                backgroundColor: Colors.red,
+              ),
+            );
+          }
+        }
     });
   }
 }
