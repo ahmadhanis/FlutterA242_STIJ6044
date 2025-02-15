@@ -1,9 +1,11 @@
 <?php
+header("Access-Control-Allow-Origin: *");
 $name = $_POST['name'];
 $email = $_POST['email'];
 $phone = $_POST['phone'];
 $district = $_POST['district'];
 $field = $_POST['field'];
+$desc = $_POST['desc'];
 $image = $_POST['image'];
 $encoded_string = base64_decode($image);
 $otp = rand(10000,99999);
@@ -12,8 +14,8 @@ $shapass = sha1($rawpassword);
 
 include_once('dbconnect.php');
 
-$sqlinsert = "INSERT INTO `tbl_tukangs`(`tukang_name`, `tukang_phone`, `tukang_email`, `tukang_location`, `tukang_field`,`tukang_otp`, `tukang_pass`) 
-VALUES ('$name','$phone','$email','$district','$field','$otp','$shapass')";
+$sqlinsert = "INSERT INTO `tbl_tukangs`(`tukang_name`, `tukang_phone`, `tukang_email`, `tukang_location`, `tukang_field`,`tukang_desc`,`tukang_otp`, `tukang_pass`) 
+VALUES ('$name','$phone','$email','$district','$field','$desc','$otp','$shapass')";
 
 try{
     if ($conn->query($sqlinsert) === TRUE) {

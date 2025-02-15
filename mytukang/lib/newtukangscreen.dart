@@ -15,6 +15,7 @@ class _NewTukangScreenState extends State<NewTukangScreen> {
   TextEditingController emailController = TextEditingController();
   TextEditingController phoneController = TextEditingController();
   TextEditingController nameController = TextEditingController();
+  TextEditingController descController = TextEditingController();
 
   var districts = [
     'Baling',
@@ -34,17 +35,19 @@ class _NewTukangScreenState extends State<NewTukangScreen> {
   var fields = [
     'Plumber',
     'Electrician',
-    'Carpenter',
+    'Gardener',
     'Painter',
     'Cleaner',
     'Cook',
     'Driver',
     'Builder',
     'Carpenter',
+    'Mechanic',
+    'Caterer',
     'Other'
   ];
 
-  var image;
+  File? image;
 
   String selectedDistrict = 'Baling';
   String selectedField = 'Plumber';
@@ -140,6 +143,18 @@ class _NewTukangScreenState extends State<NewTukangScreen> {
                   const SizedBox(
                     height: 10,
                   ),
+                   TextField(
+                    maxLines: 5,
+                    controller: descController,
+                    decoration: const InputDecoration(
+                      labelText: 'Description',
+                      border: OutlineInputBorder(),
+                    ),
+                    keyboardType: TextInputType.text,
+                  ),
+                  const SizedBox(
+                    height: 10,
+                  ),
                   Container(
                     height: 60,
                     padding: const EdgeInsets.symmetric(horizontal: 15),
@@ -201,8 +216,9 @@ class _NewTukangScreenState extends State<NewTukangScreen> {
     String name = nameController.text;
     String email = emailController.text;
     String phone = phoneController.text;
+    String desc = descController.text;
 
-    if (image == null || name.isEmpty || email.isEmpty || phone.isEmpty) {
+    if (image == null || name.isEmpty || email.isEmpty || phone.isEmpty || desc.isEmpty) {
       ScaffoldMessenger.of(context).showSnackBar(
         const SnackBar(
           content: Text('Please fill in all required fields'),
@@ -259,35 +275,37 @@ class _NewTukangScreenState extends State<NewTukangScreen> {
     String name = nameController.text;
     String email = emailController.text;
     String phone = phoneController.text;
-    String base64Image = base64Encode(image.readAsBytesSync());
-    http.post(Uri.parse('http://10.30.1.39/mytukang/api/insert_tukang.php'),
+    String desc = descController.text;
+    // String base64Image = base64Encode(image!.readAsBytesSync());
+    http.post(Uri.parse('http://10.30.1.49/mytukang/api/insert_tukang.php'),
         body: {
           'name': name,
           'email': email,
           'phone': phone,
           'field': selectedField,
           'district': selectedDistrict,
-          'image': base64Image,
+          'desc': desc,
+          'image': base64Encode(image!.readAsBytesSync()),
         }).then((response) {
-        if (response.statusCode == 200) {
-          var arrayresponse = jsonDecode(response.body);
-          if (arrayresponse['status'] == 'success') {
-            ScaffoldMessenger.of(context).showSnackBar(
-              const SnackBar(
-                content: Text('Tukang submitted successfully'),
-                backgroundColor: Colors.green,
-              ),
-            );
-            Navigator.of(context).pop();
-          }else{
-            ScaffoldMessenger.of(context).showSnackBar(
-              const SnackBar(
-                content: Text('Failed to submit tukang'),
-                backgroundColor: Colors.red,
-              ),
-            );
-          }
+      if (response.statusCode == 200) {
+        var arrayresponse = jsonDecode(response.body);
+        if (arrayresponse['status'] == 'success') {
+          ScaffoldMessenger.of(context).showSnackBar(
+            const SnackBar(
+              content: Text('Tukang submitted successfully'),
+              backgroundColor: Colors.green,
+            ),
+          );
+          Navigator.of(context).pop();
+        } else {
+          ScaffoldMessenger.of(context).showSnackBar(
+            const SnackBar(
+              content: Text('Failed to submit tukang'),
+              backgroundColor: Colors.red,
+            ),
+          );
         }
+      }
     });
   }
 }
