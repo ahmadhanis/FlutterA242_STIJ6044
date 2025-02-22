@@ -1,8 +1,22 @@
 <?php
 header("Access-Control-Allow-Origin: *");
 include_once('dbconnect.php');
+//district=$selectedDistrict&field=$selectedField
 
-$sqlloadtukang = "SELECT * FROM tbl_tukangs";
+$district = $_GET['district'];
+$field = $_GET['field'];
+
+if ($district == "All" && $field == "All") {
+    $sqlloadtukang = "SELECT * FROM tbl_tukangs";
+} else if ($district == "All" && $field != "All") {
+    $sqlloadtukang = "SELECT * FROM tbl_tukangs WHERE tukang_field = '$field'";
+} else if ($district != "All" && $field == "All") {
+    $sqlloadtukang = "SELECT * FROM tbl_tukangs WHERE tukang_location = '$district'";
+} else {
+    $sqlloadtukang = "SELECT * FROM tbl_tukangs WHERE tukang_location = '$district' AND tukang_field = '$field'";
+}
+
+// $sqlloadtukang = "SELECT * FROM tbl_tukangs";
 $result = $conn->query($sqlloadtukang);
 
 if ($result->num_rows > 0) {

@@ -3,6 +3,7 @@ import 'dart:io';
 import 'package:flutter/material.dart';
 import 'package:image_picker/image_picker.dart';
 import 'package:http/http.dart' as http;
+import 'package:mytukang/myconfig.dart';
 
 class NewTukangScreen extends StatefulWidget {
   const NewTukangScreen({super.key});
@@ -277,7 +278,7 @@ class _NewTukangScreenState extends State<NewTukangScreen> {
     String phone = phoneController.text;
     String desc = descController.text;
     // String base64Image = base64Encode(image!.readAsBytesSync());
-    http.post(Uri.parse('http://10.30.1.49/mytukang/api/insert_tukang.php'),
+    http.post(Uri.parse('${MyConfig.baseUrl}/api/insert_tukang.php'),
         body: {
           'name': name,
           'email': email,
