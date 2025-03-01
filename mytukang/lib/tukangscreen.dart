@@ -1,14 +1,11 @@
 import 'dart:convert';
 import 'dart:developer';
-
 import 'package:flutter/material.dart';
-import 'package:flutter/rendering.dart';
-import 'package:flutter/widgets.dart';
 import 'package:intl/intl.dart';
 import 'package:mytukang/myconfig.dart';
 import 'package:mytukang/newtukangscreen.dart';
-import 'package:http/http.dart' as http;
 import 'package:mytukang/tukang.dart';
+import 'package:http/http.dart' as http;
 import 'package:url_launcher/url_launcher_string.dart';
 
 class TukangScreen extends StatefulWidget {
@@ -19,11 +16,14 @@ class TukangScreen extends StatefulWidget {
 }
 
 class _TukangScreenState extends State<TukangScreen> {
-  List<Tukang> tukangList = <Tukang>[]; //list array objects
+  List<Tukang> tukangList = <Tukang>[]; // List of tukang objects
   String status = "Loading...";
   late double screenHeight, screenWidth;
   DateFormat formatter = DateFormat('dd/MM/yyyy hh:mm a');
-
+  int numofpage = 1;
+  int curpage = 1;
+  int numofresult = 0;
+  var color;
   var districts = [
     'All',
     'Baling',
@@ -61,24 +61,27 @@ class _TukangScreenState extends State<TukangScreen> {
 
   @override
   void initState() {
-    // TODO: implement initState
     super.initState();
     loadTukang();
   }
 
-  void loadTukang() {
-    http
+  Future<void> loadTukang() async {
+    await http
         .get(Uri.parse(
-            '${MyConfig.baseUrl}/api/load_tukang.php?district=$selectedDistrict&field=$selectedField'))
+            '${MyConfig.baseUrl}/api/load_tukang.php?district=$selectedDistrict&field=$selectedField&pageno=$curpage'))
         .then((response) {
-      //log(response.body);
       var data = jsonDecode(response.body);
+      // log(data.toString());
       if (data['status'] == 'success') {
         tukangList.clear();
         data['data'].forEach((tukang) {
           Tukang t = Tukang.fromJson(tukang);
           tukangList.add(t);
         });
+        numofpage = int.parse(data['numofpage'].toString());
+        numofresult = int.parse(data['numberofresult'].toString());
+        print(numofpage);
+        print(numofresult);
       } else {
         tukangList.clear();
         status = "No tukang found";
@@ -94,7 +97,15 @@ class _TukangScreenState extends State<TukangScreen> {
     return Scaffold(
       appBar: AppBar(
         title: const Text('MyTukang'),
-        backgroundColor: Colors.purpleAccent,
+        flexibleSpace: Container(
+          decoration: const BoxDecoration(
+            gradient: LinearGradient(
+              colors: [Colors.purpleAccent, Colors.deepPurple],
+              begin: Alignment.topLeft,
+              end: Alignment.bottomRight,
+            ),
+          ),
+        ),
         actions: [
           IconButton(
             icon: const Icon(Icons.search),
@@ -112,137 +123,136 @@ class _TukangScreenState extends State<TukangScreen> {
       ),
       body: tukangList.isEmpty
           ? Center(child: Text(status))
-          : ListView.builder(
-              itemCount: tukangList.length,
-              itemBuilder: (context, index) {
-                return Card(
-                  child: ListTile(
-                    leading: Image.network(
-                        "${MyConfig.baseUrl}/assets/${tukangList[index].tukangId}.png"),
-                    title: Text(tukangList[index].tukangName.toString()),
-                    subtitle: Text(
-                        '${tukangList[index].tukangField}\n${tukangList[index].tukangPhone}'),
-                    trailing: IconButton(
-                      onPressed: () => {showTukangDetails(index)},
-                      icon: const Icon(Icons.info),
+          : Padding(
+              padding: const EdgeInsets.all(8.0),
+              child: RefreshIndicator(
+                onRefresh: () async {
+                  await loadTukang();
+                  ScaffoldMessenger.of(context).showSnackBar(
+                    const SnackBar(
+                      content: Text('Data updated'),
+                      backgroundColor: Colors.purple,
+                      duration: Duration(milliseconds: 500),
                     ),
-                  ),
-                );
-              },
+                  );
+                },
+                child: Column(
+                  children: [
+                    Expanded(
+                      child: GridView.builder(
+                        padding: const EdgeInsets.all(8),
+                        gridDelegate: SliverGridDelegateWithFixedCrossAxisCount(
+                          crossAxisCount: screenWidth < 600 ? 1 : 2,
+                          childAspectRatio: screenWidth < 600 ? 3.5 : 3.0,
+                          crossAxisSpacing: 8,
+                          mainAxisSpacing: 8,
+                        ),
+                        itemCount: tukangList.length,
+                        itemBuilder: (context, index) {
+                          return Card(
+                            elevation: 4,
+                            shape: RoundedRectangleBorder(
+                              borderRadius: BorderRadius.circular(15),
+                            ),
+                            child: InkWell(
+                              onLongPress: () {
+                                showDeleteDialog(index);
+                              },
+                              child: Padding(
+                                padding: const EdgeInsets.all(8),
+                                child: Row(
+                                  children: [
+                                    ClipRRect(
+                                      borderRadius: BorderRadius.circular(8),
+                                      child: Image.network(
+                                        "${MyConfig.baseUrl}/assets/${tukangList[index].tukangId}.png",
+                                        width: 80,
+                                        height: 80,
+                                        fit: BoxFit.fill,
+                                      ),
+                                    ),
+                                    const SizedBox(width: 8),
+                                    Expanded(
+                                      child: Column(
+                                        crossAxisAlignment:
+                                            CrossAxisAlignment.start,
+                                        mainAxisAlignment:
+                                            MainAxisAlignment.center,
+                                        children: [
+                                          Text(
+                                            tukangList[index]
+                                                .tukangName
+                                                .toString(),
+                                            style: const TextStyle(
+                                                fontWeight: FontWeight.bold),
+                                          ),
+                                          const SizedBox(height: 4),
+                                          Text(
+                                            '${tukangList[index].tukangField}\n${tukangList[index].tukangLocation}\n${tukangList[index].tukangField}\n${tukangList[index].tukangPhone}',
+                                            style:
+                                                const TextStyle(fontSize: 12),
+                                          ),
+                                        ],
+                                      ),
+                                    ),
+                                    IconButton(
+                                      onPressed: () => showTukangDetails(index),
+                                      icon: const Icon(Icons.info_outline),
+                                    ),
+                                  ],
+                                ),
+                              ),
+                            ),
+                          );
+                        },
+                      ),
+                    ),
+                    Container(
+                      alignment: Alignment.center,
+                      child: Text("Page: $curpage/Result: $numofresult"),
+                    ),
+                    SizedBox(
+                      height: screenHeight * 0.05,
+                      child: ListView.builder(
+                        shrinkWrap: true,
+                        itemCount: numofpage,
+                        scrollDirection: Axis.horizontal,
+                        itemBuilder: (context, index) {
+                          color = ((curpage - 1) == index)
+                              ? Colors.red
+                              : Colors.black;
+                          return TextButton(
+                            onPressed: () {
+                              curpage = index + 1;
+                              loadTukang();
+                            },
+                            child: Text(
+                              (index + 1).toString(),
+                              style: TextStyle(color: color, fontSize: 18),
+                            ),
+                          );
+                        },
+                      ),
+                    ),
+                  ],
+                ),
+              ),
             ),
       floatingActionButton: FloatingActionButton(
-        onPressed: () {
-          Navigator.push(
+        backgroundColor: Colors.deepPurple,
+        onPressed: () async {
+          await Navigator.push(
             context,
             MaterialPageRoute(builder: (context) => const NewTukangScreen()),
           );
+          loadTukang();
         },
         child: const Icon(Icons.add),
       ),
     );
   }
 
-  showTukangDetails(int index) {
-    showDialog(
-        context: context,
-        builder: (context) {
-          return AlertDialog(
-            title: Text(tukangList[index].tukangField.toString()),
-            content: Column(
-              mainAxisSize: MainAxisSize.min,
-              children: [
-                SizedBox(
-                  height: screenHeight * 0.3,
-                  width: screenWidth,
-                  child: Image.network(
-                      fit: BoxFit.cover,
-                      "${MyConfig.baseUrl}/assets/${tukangList[index].tukangId}.png"),
-                ),
-                const SizedBox(
-                  height: 10,
-                ),
-                Text(
-                  tukangList[index].tukangName.toString(),
-                  style: const TextStyle(
-                      fontWeight: FontWeight.bold, fontSize: 20),
-                ),
-                const SizedBox(
-                  height: 10,
-                ),
-                Table(
-                  // textDirection: TextDirection.rtl,
-                  defaultVerticalAlignment: TableCellVerticalAlignment.top,
-                  //  border:TableBorder.all(width: 2.0,color: Colors.red),
-                  columnWidths: const {
-                    0: FixedColumnWidth(80),
-                    1: FlexColumnWidth(),
-                  },
-
-                  children: [
-                    TableRow(children: [
-                      const Text(
-                        "Desc",
-                      ),
-                      Text(tukangList[index].tukangDesc.toString()),
-                    ]),
-                    TableRow(children: [
-                      const Text(
-                        "Phone",
-                      ),
-                      Text(tukangList[index].tukangPhone.toString()),
-                    ]),
-                    TableRow(children: [
-                      const Text(
-                        "Email",
-                      ),
-                      Text(tukangList[index].tukangEmail.toString()),
-                    ]),
-                    TableRow(children: [
-                      const Text("Date Reg"),
-                      Text(formatter.format(DateTime.parse(
-                          tukangList[index].tukangDatereg.toString()))),
-                    ]),
-                  ],
-                ),
-                Container(
-                    margin: const EdgeInsets.all(20),
-                    child: Row(
-                        mainAxisAlignment: MainAxisAlignment.spaceBetween,
-                        children: [
-                          IconButton(
-                              icon: const Icon(
-                                Icons.phone,
-                                size: 48,
-                              ),
-                              onPressed: () {
-                                launchUrlString(
-                                    'tel://${tukangList[index].tukangPhone.toString()}');
-                              }),
-                          IconButton(
-                              icon: const Icon(
-                                Icons.wechat_sharp,
-                                size: 48,
-                              ),
-                              onPressed: () {
-                                launchUrlString(
-                                    'https://wa.me/+60${tukangList[index].tukangPhone.toString()}');
-                              }),
-                          IconButton(
-                              icon: const Icon(
-                                Icons.email,
-                                size: 48,
-                              ),
-                              onPressed: () {
-                                launchUrlString(
-                                    'mailto://+60${tukangList[index].tukangEmail.toString()}');
-                              }),
-                        ]))
-              ],
-            ),
-          );
-        });
-  }
-
+  // Modern bottom sheet for search filters
   void showSearchDialog() {
     showDialog(
         context: context,
@@ -339,12 +349,25 @@ class _TukangScreenState extends State<TukangScreen> {
                         const SizedBox(
                           height: 10,
                         ),
-                        ElevatedButton(
-                            onPressed: ()  {
-                             loadTukang();
-                              Navigator.pop(context);
-                            },
-                            child: const Text('Search'))
+                        Row(
+                          mainAxisAlignment: MainAxisAlignment.spaceAround,
+                          children: [
+                            ElevatedButton(
+                                onPressed: () {
+                                  loadTukang();
+                                  Navigator.pop(context);
+                                },
+                                child: const Text('Search')),
+                            ElevatedButton(
+                                onPressed: () {
+                                  selectedDistrict = 'All';
+                                  selectedField = 'All';
+                                  loadTukang();
+                                  Navigator.pop(context);
+                                },
+                                child: const Text('Reset'))
+                          ],
+                        )
                       ],
                     ),
                     const SizedBox(
@@ -354,5 +377,207 @@ class _TukangScreenState extends State<TukangScreen> {
                 ));
           });
         });
+  }
+
+  // Modern dialog for displaying tukang details
+  showTukangDetails(int index) {
+    showDialog(
+      context: context,
+      builder: (context) {
+        return Dialog(
+          shape:
+              RoundedRectangleBorder(borderRadius: BorderRadius.circular(15)),
+          child: SingleChildScrollView(
+            child: Padding(
+              padding: const EdgeInsets.all(16.0),
+              child: Column(
+                mainAxisSize: MainAxisSize.min,
+                children: [
+                  ClipRRect(
+                    borderRadius: BorderRadius.circular(12),
+                    child: Image.network(
+                      "${MyConfig.baseUrl}/assets/${tukangList[index].tukangId}.png",
+                      height: screenHeight * 0.3,
+                      width: screenWidth,
+                      fit: BoxFit.cover,
+                    ),
+                  ),
+                  const SizedBox(height: 15),
+                  Text(
+                    tukangList[index].tukangName.toString(),
+                    style: const TextStyle(
+                        fontWeight: FontWeight.bold, fontSize: 22),
+                  ),
+                  const SizedBox(height: 10),
+                  Table(
+                    columnWidths: const {
+                      0: FixedColumnWidth(80),
+                      1: FlexColumnWidth(),
+                    },
+                    children: [
+                      TableRow(children: [
+                        const Padding(
+                          padding: EdgeInsets.symmetric(vertical: 8.0),
+                          child: Text("Desc",
+                              style: TextStyle(fontWeight: FontWeight.w600)),
+                        ),
+                        Padding(
+                          padding: const EdgeInsets.symmetric(vertical: 8.0),
+                          child: Text(tukangList[index].tukangDesc.toString()),
+                        ),
+                      ]),
+                      TableRow(children: [
+                        const Padding(
+                          padding: EdgeInsets.symmetric(vertical: 8.0),
+                          child: Text("Phone",
+                              style: TextStyle(fontWeight: FontWeight.w600)),
+                        ),
+                        Padding(
+                          padding: const EdgeInsets.symmetric(vertical: 8.0),
+                          child: Text(tukangList[index].tukangPhone.toString()),
+                        ),
+                      ]),
+                      TableRow(children: [
+                        const Padding(
+                          padding: EdgeInsets.symmetric(vertical: 8.0),
+                          child: Text("Email",
+                              style: TextStyle(fontWeight: FontWeight.w600)),
+                        ),
+                        Padding(
+                          padding: const EdgeInsets.symmetric(vertical: 8.0),
+                          child: Text(tukangList[index].tukangEmail.toString()),
+                        ),
+                      ]),
+                      TableRow(children: [
+                        const Padding(
+                          padding: EdgeInsets.symmetric(vertical: 8.0),
+                          child: Text("Date Reg",
+                              style: TextStyle(fontWeight: FontWeight.w600)),
+                        ),
+                        Padding(
+                          padding: const EdgeInsets.symmetric(vertical: 8.0),
+                          child: Text(formatter.format(DateTime.parse(
+                              tukangList[index].tukangDatereg.toString()))),
+                        ),
+                      ]),
+                    ],
+                  ),
+                  const SizedBox(height: 20),
+                  Row(
+                    mainAxisAlignment: MainAxisAlignment.spaceEvenly,
+                    children: [
+                      IconButton(
+                        icon: const Icon(
+                          Icons.phone,
+                          size: 36,
+                          color: Colors.green,
+                        ),
+                        onPressed: () {
+                          launchUrlString(
+                              'tel://${tukangList[index].tukangPhone.toString()}');
+                        },
+                      ),
+                      IconButton(
+                        icon: const Icon(
+                          Icons.wechat,
+                          size: 36,
+                          color: Colors.teal,
+                        ),
+                        onPressed: () {
+                          launchUrlString(
+                              'https://wa.me/+60${tukangList[index].tukangPhone.toString()}');
+                        },
+                      ),
+                      IconButton(
+                        icon: const Icon(
+                          Icons.email,
+                          size: 36,
+                          color: Colors.redAccent,
+                        ),
+                        onPressed: () {
+                          launchUrlString(
+                              'mailto://+60${tukangList[index].tukangEmail.toString()}');
+                        },
+                      ),
+                    ],
+                  )
+                ],
+              ),
+            ),
+          ),
+        );
+      },
+    );
+  }
+
+  void showDeleteDialog(int index) {
+    TextEditingController passController = TextEditingController();
+    showDialog(
+      context: context,
+      builder: (context) {
+        return AlertDialog(
+          title: const Text('Delete Tukang'),
+          content: Column(
+            mainAxisSize: MainAxisSize.min,
+            children: [
+              TextField(
+                  controller: passController,
+                  obscureText: true,
+                  decoration: const InputDecoration(
+                    labelText: 'Password',
+                    focusedBorder: OutlineInputBorder(
+                      borderSide: BorderSide(
+                          color: Colors.deepPurpleAccent, width: 2.0),
+                    ),
+                  )),
+            ],
+          ),
+          actions: [
+            TextButton(
+              child: const Text('Cancel'),
+              onPressed: () {
+                Navigator.pop(context);
+              },
+            ),
+            TextButton(
+              child: const Text('Delete'),
+              onPressed: () async {
+                await deleteTukang(tukangList[index].tukangId.toString(),
+                    passController.text, context);
+                Navigator.pop(context);
+              },
+            ),
+          ],
+        );
+      },
+    );
+  }
+
+  Future<void> deleteTukang(
+      String string, String pass, BuildContext context) async {
+    await http
+        .post(Uri.parse("${MyConfig.baseUrl}/api/delete_tukang.php"), body: {
+      'tukang_id': string,
+      'password': pass,
+    }).then((response) {
+      var data = jsonDecode(response.body);
+      log(data.toString());
+      if (data['status'] == 'success') {
+        ScaffoldMessenger.of(context).showSnackBar(
+          const SnackBar(
+            content: Text('Tukang deleted successfully'),
+            backgroundColor: Colors.green,
+          ),
+        );
+        loadTukang();
+      } else {
+        ScaffoldMessenger.of(context).showSnackBar(
+          const SnackBar(
+            content: Text('Failed to delete tukang'),
+            backgroundColor: Colors.red,
+          ),
+        );
+      }
+    });
   }
 }
