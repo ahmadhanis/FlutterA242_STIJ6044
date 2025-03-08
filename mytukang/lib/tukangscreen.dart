@@ -2,10 +2,12 @@ import 'dart:convert';
 import 'dart:developer';
 import 'package:flutter/material.dart';
 import 'package:intl/intl.dart';
+import 'package:mytukang/edittukangscreen.dart';
 import 'package:mytukang/myconfig.dart';
 import 'package:mytukang/newtukangscreen.dart';
 import 'package:mytukang/tukang.dart';
 import 'package:http/http.dart' as http;
+import 'package:shared_preferences/shared_preferences.dart';
 import 'package:url_launcher/url_launcher_string.dart';
 
 class TukangScreen extends StatefulWidget {
@@ -55,6 +57,7 @@ class _TukangScreenState extends State<TukangScreen> {
     'Caterer',
     'Other'
   ];
+  List fav = [];
 
   String selectedDistrict = 'All';
   String selectedField = 'All';
@@ -62,6 +65,7 @@ class _TukangScreenState extends State<TukangScreen> {
   @override
   void initState() {
     super.initState();
+    loadFav();
     loadTukang();
   }
 
@@ -80,8 +84,6 @@ class _TukangScreenState extends State<TukangScreen> {
         });
         numofpage = int.parse(data['numofpage'].toString());
         numofresult = int.parse(data['numberofresult'].toString());
-        print(numofpage);
-        print(numofresult);
       } else {
         tukangList.clear();
         status = "No tukang found";
@@ -140,12 +142,12 @@ class _TukangScreenState extends State<TukangScreen> {
                   children: [
                     Expanded(
                       child: GridView.builder(
-                        padding: const EdgeInsets.all(8),
+                        padding: const EdgeInsets.all(4),
                         gridDelegate: SliverGridDelegateWithFixedCrossAxisCount(
                           crossAxisCount: screenWidth < 600 ? 1 : 2,
-                          childAspectRatio: screenWidth < 600 ? 3.5 : 3.0,
-                          crossAxisSpacing: 8,
-                          mainAxisSpacing: 8,
+                          childAspectRatio: screenWidth < 600 ? 3 : 3.0,
+                          crossAxisSpacing: 4,
+                          mainAxisSpacing: 4,
                         ),
                         itemCount: tukangList.length,
                         itemBuilder: (context, index) {
@@ -157,6 +159,9 @@ class _TukangScreenState extends State<TukangScreen> {
                             child: InkWell(
                               onLongPress: () {
                                 showDeleteDialog(index);
+                              },
+                              onTap: () {
+                                showTukangDetails(index);
                               },
                               child: Padding(
                                 padding: const EdgeInsets.all(8),
@@ -188,17 +193,55 @@ class _TukangScreenState extends State<TukangScreen> {
                                           ),
                                           const SizedBox(height: 4),
                                           Text(
-                                            '${tukangList[index].tukangField}\n${tukangList[index].tukangLocation}\n${tukangList[index].tukangField}\n${tukangList[index].tukangPhone}',
+                                            '${tukangList[index].tukangField}\n${tukangList[index].tukangLocation}\n${tukangList[index].tukangPhone}',
                                             style:
                                                 const TextStyle(fontSize: 12),
                                           ),
                                         ],
                                       ),
                                     ),
-                                    IconButton(
-                                      onPressed: () => showTukangDetails(index),
-                                      icon: const Icon(Icons.info_outline),
-                                    ),
+                                    Column(
+                                      children: [
+                                        IconButton(
+                                          onPressed: () {
+                                            if (!fav.contains(int.parse(
+                                                tukangList[index]
+                                                    .tukangId
+                                                    .toString()))) {
+                                              fav.add(
+                                                  tukangList[index].tukangId);
+                                              storPref(fav);
+                                              setState(() {});
+                                            } else {
+                                              fav.remove(int.parse(
+                                                  tukangList[index]
+                                                      .tukangId
+                                                      .toString()));
+                                              storPref(fav);
+                                              setState(() {});
+                                            }
+                                          },
+                                          icon: Icon(
+                                            fav.contains(int.parse(
+                                                    tukangList[index]
+                                                        .tukangId
+                                                        .toString()))
+                                                ? Icons.favorite
+                                                : Icons.favorite_border,
+                                            color: fav.contains(int.parse(
+                                                    tukangList[index]
+                                                        .tukangId
+                                                        .toString()))
+                                                ? Colors.green
+                                                : Colors.grey,
+                                          ),
+                                        ),
+                                        IconButton(
+                                          onPressed: () {},
+                                          icon: const Icon(Icons.report),
+                                        ),
+                                      ],
+                                    )
                                   ],
                                 ),
                               ),
@@ -297,7 +340,6 @@ class _TukangScreenState extends State<TukangScreen> {
                             }).toList(),
                             onChanged: (String? newValue) {
                               selectedField = newValue!;
-                              print(selectedField);
                               setState(() {});
                             },
                           ),
@@ -341,7 +383,6 @@ class _TukangScreenState extends State<TukangScreen> {
                             }).toList(),
                             onChanged: (String? newValue) {
                               selectedDistrict = newValue!;
-                              print(selectedDistrict);
                               setState(() {});
                             },
                           ),
@@ -516,10 +557,11 @@ class _TukangScreenState extends State<TukangScreen> {
       context: context,
       builder: (context) {
         return AlertDialog(
-          title: const Text('Delete Tukang'),
+          title: const Text('Delete/Update Tukang'),
           content: Column(
             mainAxisSize: MainAxisSize.min,
             children: [
+              Text(tukangList[index].tukangName.toString()),
               TextField(
                   controller: passController,
                   obscureText: true,
@@ -537,6 +579,14 @@ class _TukangScreenState extends State<TukangScreen> {
               child: const Text('Cancel'),
               onPressed: () {
                 Navigator.pop(context);
+              },
+            ),
+            TextButton(
+              child: const Text('Update'),
+              onPressed: () {
+                Navigator.pop(context);
+                updateTukang(
+                    tukangList[index].tukangId.toString(), passController.text);
               },
             ),
             TextButton(
@@ -579,5 +629,51 @@ class _TukangScreenState extends State<TukangScreen> {
         );
       }
     });
+  }
+
+  void updateTukang(String tukangid, String pass) {
+    http.post(Uri.parse("${MyConfig.baseUrl}/api/cari_tukang.php"), body: {
+      'tukang_id': tukangid,
+      'password': pass,
+    }).then((response) async {
+      var data = jsonDecode(response.body);
+      // log(response.body.toString());
+      if (data['status'] == 'success') {
+        Tukang tukang = Tukang.fromJson(data['data'][0]);
+        await Navigator.push(
+          context,
+          MaterialPageRoute(
+            builder: (context) => EditTukangScreen(tukang: tukang),
+          ),
+        );
+        loadTukang();
+      } else {
+        ScaffoldMessenger.of(context).showSnackBar(
+          const SnackBar(
+            content: Text('Incorrect password'),
+            backgroundColor: Colors.red,
+          ),
+        );
+      }
+    });
+  }
+
+  Future<void> storPref(List fav) async {
+    SharedPreferences prefs = await SharedPreferences.getInstance();
+    await prefs.setString('favorite', '');
+    await prefs.setString('favorite', fav.toString());
+    loadFav();
+    setState(() {});
+  }
+
+  Future<void> loadFav() async {
+    SharedPreferences prefs = await SharedPreferences.getInstance();
+    String? favString = prefs.getString('favorite');
+    fav = [];
+    if (favString != null && favString.isNotEmpty) {
+      fav = List.from(json.decode(favString));
+    } else {
+      fav = [];
+    }
   }
 }
