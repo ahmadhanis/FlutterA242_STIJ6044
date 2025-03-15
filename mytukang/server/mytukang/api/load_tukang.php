@@ -17,13 +17,13 @@ $district = $_GET[ 'district' ];
 $field = $_GET[ 'field' ];
 
 if ( $district == 'All' && $field == 'All' ) {
-    $sqlloadtukang = 'SELECT * FROM tbl_tukangs';
+    $sqlloadtukang = 'SELECT * FROM tbl_tukangs WHERE tukang_otp = 0' ;
 } else if ( $district == 'All' && $field != 'All' ) {
-    $sqlloadtukang = "SELECT * FROM tbl_tukangs WHERE tukang_field = '$field'";
+    $sqlloadtukang = "SELECT * FROM tbl_tukangs WHERE tukang_field = '$field' AND tukang_otp = 0";
 } else if ( $district != 'All' && $field == 'All' ) {
-    $sqlloadtukang = "SELECT * FROM tbl_tukangs WHERE tukang_location = '$district'";
+    $sqlloadtukang = "SELECT * FROM tbl_tukangs WHERE tukang_location = '$district' AND tukang_otp = 0";
 } else {
-    $sqlloadtukang = "SELECT * FROM tbl_tukangs WHERE tukang_location = '$district' AND tukang_field = '$field'";
+    $sqlloadtukang = "SELECT * FROM tbl_tukangs WHERE tukang_location = '$district' AND tukang_field = '$field' AND tukang_otp = 0";
 }
 
 $result = $conn->query( $sqlloadtukang );

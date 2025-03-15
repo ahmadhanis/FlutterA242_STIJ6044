@@ -13,12 +13,17 @@ class NewTukangScreen extends StatefulWidget {
 }
 
 class _NewTukangScreenState extends State<NewTukangScreen> {
-  TextEditingController emailController = TextEditingController();
-  TextEditingController phoneController = TextEditingController();
-  TextEditingController nameController = TextEditingController();
-  TextEditingController descController = TextEditingController();
+  final TextEditingController emailController = TextEditingController();
+  final TextEditingController phoneController = TextEditingController();
+  final TextEditingController nameController = TextEditingController();
+  final TextEditingController descController = TextEditingController();
+  final _formKey = GlobalKey<FormState>();
 
-  var districts = [
+  File? image;
+  String selectedDistrict = 'Baling';
+  String selectedField = 'Plumber';
+
+  final List<String> districts = [
     'Baling',
     'Bandar Baharu',
     'Kota Setar',
@@ -33,7 +38,7 @@ class _NewTukangScreenState extends State<NewTukangScreen> {
     'Yan'
   ];
 
-  var fields = [
+  final List<String> fields = [
     'Plumber',
     'Electrician',
     'Gardener',
@@ -48,155 +53,169 @@ class _NewTukangScreenState extends State<NewTukangScreen> {
     'Other'
   ];
 
-  File? image;
-
-  String selectedDistrict = 'Baling';
-  String selectedField = 'Plumber';
-
   @override
   Widget build(BuildContext context) {
     return Scaffold(
-        appBar: AppBar(
-          title: const Text('NewTukang'),
-          backgroundColor: Colors.deepPurpleAccent,
-        ),
-        body: Center(
-          child: Padding(
-            padding: const EdgeInsets.all(16.0),
-            child: SingleChildScrollView(
-              child: Column(
-                children: [
-                  GestureDetector(
-                    onTap: () {
-                      openCamera();
-                    },
-                    child: Container(
-                      height: 200,
-                      decoration: BoxDecoration(
-                          border: Border.all(color: Colors.black),
-                          image: DecorationImage(
-                            image: image == null
-                                ? const AssetImage('assets/images/profile.png')
-                                : FileImage(image!) as ImageProvider<Object>,
-                            fit: BoxFit.contain,
-                          )),
-                    ),
-                  ),
-                  const SizedBox(
-                    height: 10,
-                  ),
-                  TextField(
-                    controller: nameController,
-                    decoration: const InputDecoration(
-                      labelText: 'Name',
-                      border: OutlineInputBorder(),
-                    ),
-                  ),
-                  const SizedBox(
-                    height: 10,
-                  ),
-                  TextField(
-                    controller: emailController,
-                    decoration: const InputDecoration(
-                      labelText: 'Email',
-                      border: OutlineInputBorder(),
-                    ),
-                    keyboardType: TextInputType.emailAddress,
-                  ),
-                  const SizedBox(
-                    height: 10,
-                  ),
-                  TextField(
-                    controller: phoneController,
-                    decoration: const InputDecoration(
-                      labelText: 'Phone',
-                      border: OutlineInputBorder(),
-                    ),
-                    keyboardType: TextInputType.phone,
-                  ),
-                  const SizedBox(
-                    height: 10,
-                  ),
-                  Container(
-                    height: 60,
-                    padding: const EdgeInsets.symmetric(horizontal: 15),
-                    decoration: BoxDecoration(
-                        border: Border.all(color: Colors.grey),
-                        borderRadius: BorderRadius.circular(5)),
-                    child: DropdownButton(
-                      value: selectedField,
-                      underline: const SizedBox(),
-                      isExpanded: true,
-                      icon: const Icon(Icons.keyboard_arrow_down),
-                      items: fields.map((String items) {
-                        return DropdownMenuItem(
-                          value: items,
-                          child: Text(items),
-                        );
-                      }).toList(),
-                      onChanged: (String? newValue) {
-                        selectedField = newValue!;
-                        print(selectedField);
-                        setState(() {});
-                      },
-                    ),
-                  ),
-                  const SizedBox(
-                    height: 10,
-                  ),
-                   TextField(
-                    maxLines: 5,
-                    controller: descController,
-                    decoration: const InputDecoration(
-                      labelText: 'Description',
-                      border: OutlineInputBorder(),
-                    ),
-                    keyboardType: TextInputType.text,
-                  ),
-                  const SizedBox(
-                    height: 10,
-                  ),
-                  Container(
-                    height: 60,
-                    padding: const EdgeInsets.symmetric(horizontal: 15),
-                    decoration: BoxDecoration(
-                        border: Border.all(color: Colors.grey),
-                        borderRadius: BorderRadius.circular(5)),
-                    child: DropdownButton(
-                      value: selectedDistrict,
-                      underline: const SizedBox(),
-                      isExpanded: true,
-                      icon: const Icon(Icons.keyboard_arrow_down),
-                      items: districts.map((String items) {
-                        return DropdownMenuItem(
-                          value: items,
-                          child: Text(items),
-                        );
-                      }).toList(),
-                      onChanged: (String? newValue) {
-                        selectedDistrict = newValue!;
-                        print(selectedDistrict);
-                        setState(() {});
-                      },
-                    ),
-                  ),
-                  const SizedBox(
-                    height: 10,
-                  ),
-                  SizedBox(
-                    width: 400,
-                    child: ElevatedButton(
-                      onPressed: () {
-                        onsubmitDialog();
-                      },
-                      child: const Text('Submit'),
-                    ),
-                  ),
-                ],
-              ),
+      appBar: AppBar(
+        title: const Text('New Tukang'),
+        flexibleSpace: Container(
+          decoration: const BoxDecoration(
+            gradient: LinearGradient(
+              colors: [Colors.blueAccent, Colors.blueGrey],
+              begin: Alignment.topLeft,
+              end: Alignment.bottomRight,
             ),
           ),
-        ));
+        ),
+      ),
+      body: SingleChildScrollView(
+        padding: const EdgeInsets.all(16.0),
+        child: Form(
+          key: _formKey,
+          child: Column(
+            children: [
+              // Profile Picture Picker
+              GestureDetector(
+                onTap: openCamera,
+                child: Stack(
+                  alignment: Alignment.bottomRight,
+                  children: [
+                    CircleAvatar(
+                      radius: 60,
+                      backgroundColor: Colors.grey[300],
+                      backgroundImage: image != null
+                          ? FileImage(image!)
+                          : const AssetImage('assets/images/profile.png')
+                              as ImageProvider,
+                    ),
+                    const CircleAvatar(
+                      radius: 18,
+                      backgroundColor: Colors.white,
+                      child: Icon(Icons.camera_alt,
+                          color: Colors.deepPurpleAccent),
+                    ),
+                  ],
+                ),
+              ),
+              const SizedBox(height: 16),
+
+              // Name Field
+              buildInputField(controller: nameController, label: "Name"),
+              const SizedBox(height: 10),
+
+              // Email Field
+              buildInputField(
+                controller: emailController,
+                label: "Email",
+                keyboardType: TextInputType.emailAddress,
+                validator: (value) =>
+                    value!.contains('@') ? null : "Enter a valid email",
+              ),
+              const SizedBox(height: 10),
+
+              // Phone Field
+              buildInputField(
+                controller: phoneController,
+                label: "Phone",
+                keyboardType: TextInputType.phone,
+                validator: (value) =>
+                    value!.length >= 10 ? null : "Enter a valid phone number",
+              ),
+              const SizedBox(height: 10),
+
+              // Field Dropdown
+              buildDropdownField(
+                value: selectedField,
+                label: "Field of Work",
+                items: fields,
+                onChanged: (String? newValue) {
+                  setState(() => selectedField = newValue!);
+                },
+              ),
+              const SizedBox(height: 10),
+
+              // Description Field
+              buildInputField(
+                controller: descController,
+                label: "Description",
+                maxLines: 5,
+              ),
+              const SizedBox(height: 10),
+
+              // District Dropdown
+              buildDropdownField(
+                value: selectedDistrict,
+                label: "District",
+                items: districts,
+                onChanged: (String? newValue) {
+                  setState(() => selectedDistrict = newValue!);
+                },
+              ),
+              const SizedBox(height: 20),
+
+              // Submit Button
+              ElevatedButton.icon(
+                onPressed: onsubmitDialog,
+                style: ElevatedButton.styleFrom(
+                  backgroundColor: Colors.blueGrey,
+                  minimumSize: const Size(double.infinity, 50),
+                  shape: RoundedRectangleBorder(
+                    borderRadius: BorderRadius.circular(10),
+                  ),
+                ),
+                icon: const Icon(Icons.send, color: Colors.white),
+                label:
+                    const Text("Submit", style: TextStyle(color: Colors.white)),
+              ),
+            ],
+          ),
+        ),
+      ),
+    );
+  }
+
+  // Reusable TextField Builder
+  Widget buildInputField({
+    required TextEditingController controller,
+    required String label,
+    TextInputType keyboardType = TextInputType.text,
+    int maxLines = 1,
+    String? Function(String?)? validator,
+  }) {
+    return TextFormField(
+      controller: controller,
+      keyboardType: keyboardType,
+      maxLines: maxLines,
+      decoration: InputDecoration(
+        labelText: label,
+        border: OutlineInputBorder(borderRadius: BorderRadius.circular(10)),
+        filled: true,
+        fillColor: Colors.grey[100],
+      ),
+      validator: validator,
+    );
+  }
+
+  // Reusable Dropdown Field
+  Widget buildDropdownField({
+    required String value,
+    required String label,
+    required List<String> items,
+    required ValueChanged<String?> onChanged,
+  }) {
+    return DropdownButtonFormField<String>(
+      value: value,
+      decoration: InputDecoration(
+        labelText: label,
+        border: OutlineInputBorder(borderRadius: BorderRadius.circular(10)),
+        filled: true,
+        fillColor: Colors.grey[100],
+      ),
+      items: items.map((String item) {
+        return DropdownMenuItem(value: item, child: Text(item));
+      }).toList(),
+      onChanged: onChanged,
+    );
   }
 
   Future<void> openCamera() async {
@@ -208,39 +227,15 @@ class _NewTukangScreenState extends State<NewTukangScreen> {
     );
 
     if (pickedFile != null) {
-      image = File(pickedFile.path);
+      setState(() => image = File(pickedFile.path));
     }
-    setState(() {});
   }
 
   void onsubmitDialog() {
-    String name = nameController.text;
-    String email = emailController.text;
-    String phone = phoneController.text;
-    String desc = descController.text;
-
-    if (image == null || name.isEmpty || email.isEmpty || phone.isEmpty || desc.isEmpty) {
+    if (!_formKey.currentState!.validate() || image == null) {
       ScaffoldMessenger.of(context).showSnackBar(
         const SnackBar(
-          content: Text('Please fill in all required fields'),
-          backgroundColor: Colors.red,
-        ),
-      );
-      return;
-    }
-    if (!email.contains('@') && !email.contains('.')) {
-      ScaffoldMessenger.of(context).showSnackBar(
-        const SnackBar(
-          content: Text('Invalid email address'),
-          backgroundColor: Colors.red,
-        ),
-      );
-      return;
-    }
-    if (phone.length < 10) {
-      ScaffoldMessenger.of(context).showSnackBar(
-        const SnackBar(
-          content: Text('Invalid phone number'),
+          content: Text('Please fill all required fields correctly'),
           backgroundColor: Colors.red,
         ),
       );
@@ -248,64 +243,44 @@ class _NewTukangScreenState extends State<NewTukangScreen> {
     }
 
     showDialog(
-        context: context,
-        builder: (BuildContext context) {
-          return AlertDialog(
-            title: const Text('Confirmation'),
-            content: const Text('Are you sure you want to submit?'),
-            actions: [
-              TextButton(
-                child: const Text('Cancel'),
-                onPressed: () {
-                  Navigator.of(context).pop();
-                },
-              ),
-              TextButton(
-                child: const Text('Submit'),
-                onPressed: () {
-                  Navigator.of(context).pop();
-                  submitData();
-                },
-              ),
-            ],
-          );
-        });
+      context: context,
+      builder: (context) => AlertDialog(
+        title: const Text('Confirmation'),
+        content: const Text('Are you sure you want to submit?'),
+        actions: [
+          TextButton(
+            onPressed: () => Navigator.pop(context),
+            child: const Text('Cancel'),
+          ),
+          TextButton(
+            onPressed: () {
+              Navigator.pop(context);
+              submitData();
+            },
+            child: const Text('Submit'),
+          ),
+        ],
+      ),
+    );
   }
 
   void submitData() {
-    String name = nameController.text;
-    String email = emailController.text;
-    String phone = phoneController.text;
-    String desc = descController.text;
-    // String base64Image = base64Encode(image!.readAsBytesSync());
-    http.post(Uri.parse('${MyConfig.baseUrl}/api/insert_tukang.php'),
-        body: {
-          'name': name,
-          'email': email,
-          'phone': phone,
-          'field': selectedField,
-          'district': selectedDistrict,
-          'desc': desc,
-          'image': base64Encode(image!.readAsBytesSync()),
-        }).then((response) {
+    http.post(Uri.parse('${MyConfig.baseUrl}/api/insert_tukang.php'), body: {
+      'name': nameController.text,
+      'email': emailController.text,
+      'phone': phoneController.text,
+      'field': selectedField,
+      'district': selectedDistrict,
+      'desc': descController.text,
+      'image': base64Encode(image!.readAsBytesSync()),
+    }).then((response) {
       if (response.statusCode == 200) {
-        var arrayresponse = jsonDecode(response.body);
-        if (arrayresponse['status'] == 'success') {
-          ScaffoldMessenger.of(context).showSnackBar(
-            const SnackBar(
+        ScaffoldMessenger.of(context).showSnackBar(
+          const SnackBar(
               content: Text('Tukang submitted successfully'),
-              backgroundColor: Colors.green,
-            ),
-          );
-          Navigator.of(context).pop();
-        } else {
-          ScaffoldMessenger.of(context).showSnackBar(
-            const SnackBar(
-              content: Text('Failed to submit tukang'),
-              backgroundColor: Colors.red,
-            ),
-          );
-        }
+              backgroundColor: Colors.green),
+        );
+        Navigator.pop(context);
       }
     });
   }

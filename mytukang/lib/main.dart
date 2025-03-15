@@ -8,9 +8,13 @@ class MyApp extends StatelessWidget {
 
   @override
   Widget build(BuildContext context) {
-    return const MaterialApp(
+    return MaterialApp(
       title: 'Material App',
-      home: SplashScreen(),
+      home: const SplashScreen(),
+      theme: ThemeData(
+        useMaterial3: true,
+        colorScheme: ColorScheme.fromSeed(seedColor: Colors.blueGrey),
+      ),
     );
   }
 }
@@ -24,7 +28,6 @@ class SplashScreen extends StatefulWidget {
 
 class SplashScreenState extends State<SplashScreen> {
   @override
-
   void initState() {
     // TODO: implement initState
     super.initState();
@@ -38,16 +41,17 @@ class SplashScreenState extends State<SplashScreen> {
 
   @override
   Widget build(BuildContext context) {
-    return const Scaffold(
+    return Scaffold(
       body: Center(
           child: Column(
-            mainAxisAlignment: MainAxisAlignment.center,
+        mainAxisAlignment: MainAxisAlignment.center,
         children: [
-          Text(
+          Image.asset('assets/images/mytukang.png', height: 200),
+          const Text(
             'MyTukang',
             style: TextStyle(fontSize: 30, fontWeight: FontWeight.bold),
           ),
-          CircularProgressIndicator()
+          const CircularProgressIndicator()
         ],
       )),
     );

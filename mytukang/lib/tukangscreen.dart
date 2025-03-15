@@ -9,6 +9,7 @@ import 'package:mytukang/tukang.dart';
 import 'package:http/http.dart' as http;
 import 'package:shared_preferences/shared_preferences.dart';
 import 'package:url_launcher/url_launcher_string.dart';
+import 'package:flutter_rating_bar/flutter_rating_bar.dart';
 
 class TukangScreen extends StatefulWidget {
   const TukangScreen({super.key});
@@ -102,13 +103,19 @@ class _TukangScreenState extends State<TukangScreen> {
         flexibleSpace: Container(
           decoration: const BoxDecoration(
             gradient: LinearGradient(
-              colors: [Colors.purpleAccent, Colors.deepPurple],
+              colors: [Colors.blueAccent, Colors.blueGrey],
               begin: Alignment.topLeft,
               end: Alignment.bottomRight,
             ),
           ),
         ),
         actions: [
+          IconButton(
+            icon: const Icon(Icons.favorite),
+            onPressed: () {
+              showFavTukang();
+            },
+          ),
           IconButton(
             icon: const Icon(Icons.search),
             onPressed: () {
@@ -117,14 +124,42 @@ class _TukangScreenState extends State<TukangScreen> {
           ),
           IconButton(
             icon: const Icon(Icons.refresh),
-            onPressed: () {
-              loadTukang();
+            onPressed: () async {
+              await loadTukang();
+              ScaffoldMessenger.of(context).showSnackBar(
+                const SnackBar(
+                  content: Text('Data updated'),
+                  backgroundColor: Colors.blueGrey,
+                  duration: Duration(milliseconds: 500),
+                ),
+              );
             },
           ),
         ],
       ),
       body: tukangList.isEmpty
-          ? Center(child: Text(status))
+          ? Center(
+              child: status == "Loading..."
+                  ? Column(
+                      mainAxisAlignment: MainAxisAlignment.center,
+                      children: [
+                          const CircularProgressIndicator(),
+                          const SizedBox(
+                            height: 10,
+                          ),
+                          Text(status)
+                        ])
+                  : Column(
+                      mainAxisAlignment: MainAxisAlignment.center,
+                      children: [
+                        const Icon(Icons.sentiment_dissatisfied,
+                            size: 50, color: Colors.blueGrey),
+                        const SizedBox(
+                          height: 10,
+                        ),
+                        Text(status),
+                      ],
+                    ))
           : Padding(
               padding: const EdgeInsets.all(8.0),
               child: RefreshIndicator(
@@ -133,7 +168,7 @@ class _TukangScreenState extends State<TukangScreen> {
                   ScaffoldMessenger.of(context).showSnackBar(
                     const SnackBar(
                       content: Text('Data updated'),
-                      backgroundColor: Colors.purple,
+                      backgroundColor: Colors.blueGrey,
                       duration: Duration(milliseconds: 500),
                     ),
                   );
@@ -145,7 +180,7 @@ class _TukangScreenState extends State<TukangScreen> {
                         padding: const EdgeInsets.all(4),
                         gridDelegate: SliverGridDelegateWithFixedCrossAxisCount(
                           crossAxisCount: screenWidth < 600 ? 1 : 2,
-                          childAspectRatio: screenWidth < 600 ? 3 : 3.0,
+                          childAspectRatio: screenWidth < 600 ? 2.7 : 3.0,
                           crossAxisSpacing: 4,
                           mainAxisSpacing: 4,
                         ),
@@ -164,40 +199,125 @@ class _TukangScreenState extends State<TukangScreen> {
                                 showTukangDetails(index);
                               },
                               child: Padding(
-                                padding: const EdgeInsets.all(8),
+                                padding: const EdgeInsets.all(4),
                                 child: Row(
                                   children: [
                                     ClipRRect(
                                       borderRadius: BorderRadius.circular(8),
                                       child: Image.network(
                                         "${MyConfig.baseUrl}/assets/${tukangList[index].tukangId}.png",
-                                        width: 80,
-                                        height: 80,
+                                        width: 110,
+                                        height: 110,
                                         fit: BoxFit.fill,
                                       ),
                                     ),
                                     const SizedBox(width: 8),
                                     Expanded(
-                                      child: Column(
-                                        crossAxisAlignment:
-                                            CrossAxisAlignment.start,
-                                        mainAxisAlignment:
-                                            MainAxisAlignment.center,
-                                        children: [
-                                          Text(
-                                            tukangList[index]
-                                                .tukangName
-                                                .toString(),
-                                            style: const TextStyle(
-                                                fontWeight: FontWeight.bold),
-                                          ),
-                                          const SizedBox(height: 4),
-                                          Text(
-                                            '${tukangList[index].tukangField}\n${tukangList[index].tukangLocation}\n${tukangList[index].tukangPhone}',
-                                            style:
-                                                const TextStyle(fontSize: 12),
-                                          ),
-                                        ],
+                                      child: SingleChildScrollView(
+                                        child: Column(
+                                          crossAxisAlignment:
+                                              CrossAxisAlignment.start,
+                                          mainAxisAlignment:
+                                              MainAxisAlignment.center,
+                                          children: [
+                                            // Tukang Name with Modern Styling
+                                            Text(
+                                              tukangList[index]
+                                                  .tukangName
+                                                  .toString(),
+                                              style: const TextStyle(
+                                                fontSize: 16,
+                                                fontWeight: FontWeight.bold,
+                                                color: Colors.black87,
+                                              ),
+                                            ),
+                                            const SizedBox(height: 4),
+
+                                            // Star Rating Logic
+                                            tukangList[index].tukangRating == 0
+                                                ? const Text(
+                                                    "No rating available",
+                                                    style: TextStyle(
+                                                        fontSize: 12,
+                                                        color: Colors.grey),
+                                                  )
+                                                : RatingBarIndicator(
+                                                    rating: double.parse(
+                                                        tukangList[index]
+                                                            .tukangRating
+                                                            .toString()),
+                                                    itemBuilder: (context, _) =>
+                                                        const Icon(
+                                                      Icons.star,
+                                                      color: Colors.amber,
+                                                    ),
+                                                    itemCount: 5,
+                                                    itemSize: 16,
+                                                  ),
+                                            const SizedBox(height: 6),
+
+                                            // Tukang Field with Icon
+                                            Row(
+                                              children: [
+                                                const Icon(Icons.work_outline,
+                                                    size: 16,
+                                                    color: Colors.deepPurple),
+                                                const SizedBox(width: 6),
+                                                Text(
+                                                  tukangList[index]
+                                                      .tukangField
+                                                      .toString(),
+                                                  style: const TextStyle(
+                                                    fontSize: 14,
+                                                    color: Colors.black54,
+                                                    fontWeight: FontWeight.w500,
+                                                  ),
+                                                ),
+                                              ],
+                                            ),
+                                            const SizedBox(height: 4),
+
+                                            // Tukang Location with Icon
+                                            Row(
+                                              children: [
+                                                const Icon(Icons.location_on,
+                                                    size: 16,
+                                                    color: Colors.redAccent),
+                                                const SizedBox(width: 6),
+                                                Text(
+                                                  tukangList[index]
+                                                      .tukangLocation
+                                                      .toString(),
+                                                  style: const TextStyle(
+                                                    fontSize: 14,
+                                                    color: Colors.black54,
+                                                  ),
+                                                ),
+                                              ],
+                                            ),
+                                            const SizedBox(height: 4),
+
+                                            // Tukang Phone with Icon
+                                            Row(
+                                              children: [
+                                                const Icon(Icons.phone,
+                                                    size: 16,
+                                                    color: Colors.green),
+                                                const SizedBox(width: 6),
+                                                Text(
+                                                  tukangList[index]
+                                                      .tukangPhone
+                                                      .toString(),
+                                                  style: const TextStyle(
+                                                    fontSize: 14,
+                                                    fontWeight: FontWeight.w500,
+                                                    color: Colors.blueAccent,
+                                                  ),
+                                                ),
+                                              ],
+                                            ),
+                                          ],
+                                        ),
                                       ),
                                     ),
                                     Column(
@@ -211,6 +331,17 @@ class _TukangScreenState extends State<TukangScreen> {
                                               fav.add(
                                                   tukangList[index].tukangId);
                                               storPref(fav);
+                                              ScaffoldMessenger.of(context)
+                                                  .showSnackBar(
+                                                const SnackBar(
+                                                  content: Text(
+                                                      'Tukang added to favorite'),
+                                                  backgroundColor:
+                                                      Colors.blueGrey,
+                                                  duration: Duration(
+                                                      milliseconds: 500),
+                                                ),
+                                              );
                                               setState(() {});
                                             } else {
                                               fav.remove(int.parse(
@@ -218,6 +349,17 @@ class _TukangScreenState extends State<TukangScreen> {
                                                       .tukangId
                                                       .toString()));
                                               storPref(fav);
+                                              ScaffoldMessenger.of(context)
+                                                  .showSnackBar(
+                                                const SnackBar(
+                                                  content: Text(
+                                                      'Tukang removed from favorite'),
+                                                  backgroundColor:
+                                                      Colors.blueGrey,
+                                                  duration: Duration(
+                                                      milliseconds: 500),
+                                                ),
+                                              );
                                               setState(() {});
                                             }
                                           },
@@ -237,11 +379,13 @@ class _TukangScreenState extends State<TukangScreen> {
                                           ),
                                         ),
                                         IconButton(
-                                          onPressed: () {},
+                                          onPressed: () {
+                                            showReportDialog(index);
+                                          },
                                           icon: const Icon(Icons.report),
                                         ),
                                       ],
-                                    )
+                                    ),
                                   ],
                                 ),
                               ),
@@ -251,8 +395,24 @@ class _TukangScreenState extends State<TukangScreen> {
                       ),
                     ),
                     Container(
-                      alignment: Alignment.center,
-                      child: Text("Page: $curpage/Result: $numofresult"),
+                      padding: const EdgeInsets.symmetric(
+                          horizontal: 16, vertical: 8),
+                      child: Row(
+                        mainAxisAlignment: MainAxisAlignment.center,
+                        children: [
+                          const Icon(Icons.pages,
+                              color: Colors.blueGrey, size: 18),
+                          const SizedBox(width: 6),
+                          Text(
+                            "Page: $curpage • Results: $numofresult",
+                            style: const TextStyle(
+                              fontSize: 14,
+                              fontWeight: FontWeight.w600,
+                              color: Colors.black87,
+                            ),
+                          ),
+                        ],
+                      ),
                     ),
                     SizedBox(
                       height: screenHeight * 0.05,
@@ -282,7 +442,7 @@ class _TukangScreenState extends State<TukangScreen> {
               ),
             ),
       floatingActionButton: FloatingActionButton(
-        backgroundColor: Colors.deepPurple,
+        backgroundColor: Colors.blueGrey,
         onPressed: () async {
           await Navigator.push(
             context,
@@ -421,7 +581,9 @@ class _TukangScreenState extends State<TukangScreen> {
   }
 
   // Modern dialog for displaying tukang details
-  showTukangDetails(int index) {
+  void showTukangDetails(int index) {
+    double userRating = 0; // Default rating
+
     showDialog(
       context: context,
       builder: (context) {
@@ -447,9 +609,31 @@ class _TukangScreenState extends State<TukangScreen> {
                   Text(
                     tukangList[index].tukangName.toString(),
                     style: const TextStyle(
-                        fontWeight: FontWeight.bold, fontSize: 22),
+                      fontWeight: FontWeight.bold,
+                      fontSize: 22,
+                    ),
                   ),
                   const SizedBox(height: 10),
+
+                  // Star Rating Display (Existing Rating)
+                  tukangList[index].tukangRating == 0
+                      ? const Text(
+                          "No ratings yet",
+                          style: TextStyle(fontSize: 14, color: Colors.grey),
+                        )
+                      : RatingBarIndicator(
+                          rating: double.parse(
+                              tukangList[index].tukangRating.toString()),
+                          itemBuilder: (context, _) => const Icon(
+                            Icons.star,
+                            color: Colors.amber,
+                          ),
+                          itemCount: 5,
+                          itemSize: 20,
+                        ),
+                  const SizedBox(height: 10),
+
+                  // Tukang Details Table
                   Table(
                     columnWidths: const {
                       0: FixedColumnWidth(80),
@@ -458,45 +642,45 @@ class _TukangScreenState extends State<TukangScreen> {
                     children: [
                       TableRow(children: [
                         const Padding(
-                          padding: EdgeInsets.symmetric(vertical: 8.0),
+                          padding: EdgeInsets.symmetric(vertical: 4.0),
                           child: Text("Desc",
                               style: TextStyle(fontWeight: FontWeight.w600)),
                         ),
                         Padding(
-                          padding: const EdgeInsets.symmetric(vertical: 8.0),
+                          padding: const EdgeInsets.symmetric(vertical: 4.0),
                           child: Text(tukangList[index].tukangDesc.toString()),
                         ),
                       ]),
                       TableRow(children: [
                         const Padding(
-                          padding: EdgeInsets.symmetric(vertical: 8.0),
+                          padding: EdgeInsets.symmetric(vertical: 4.0),
                           child: Text("Phone",
                               style: TextStyle(fontWeight: FontWeight.w600)),
                         ),
                         Padding(
-                          padding: const EdgeInsets.symmetric(vertical: 8.0),
+                          padding: const EdgeInsets.symmetric(vertical: 4.0),
                           child: Text(tukangList[index].tukangPhone.toString()),
                         ),
                       ]),
                       TableRow(children: [
                         const Padding(
-                          padding: EdgeInsets.symmetric(vertical: 8.0),
+                          padding: EdgeInsets.symmetric(vertical: 4.0),
                           child: Text("Email",
                               style: TextStyle(fontWeight: FontWeight.w600)),
                         ),
                         Padding(
-                          padding: const EdgeInsets.symmetric(vertical: 8.0),
+                          padding: const EdgeInsets.symmetric(vertical: 4.0),
                           child: Text(tukangList[index].tukangEmail.toString()),
                         ),
                       ]),
                       TableRow(children: [
                         const Padding(
-                          padding: EdgeInsets.symmetric(vertical: 8.0),
+                          padding: EdgeInsets.symmetric(vertical: 4.0),
                           child: Text("Date Reg",
                               style: TextStyle(fontWeight: FontWeight.w600)),
                         ),
                         Padding(
-                          padding: const EdgeInsets.symmetric(vertical: 8.0),
+                          padding: const EdgeInsets.symmetric(vertical: 4.0),
                           child: Text(formatter.format(DateTime.parse(
                               tukangList[index].tukangDatereg.toString()))),
                         ),
@@ -504,6 +688,66 @@ class _TukangScreenState extends State<TukangScreen> {
                     ],
                   ),
                   const SizedBox(height: 20),
+
+                  // Star Rating Submission
+                  const Text(
+                    "Rate this Tukang:",
+                    style: TextStyle(fontSize: 16, fontWeight: FontWeight.bold),
+                  ),
+                  const SizedBox(height: 10),
+                  RatingBar.builder(
+                    initialRating: 0,
+                    minRating: 1,
+                    direction: Axis.horizontal,
+                    allowHalfRating: false,
+                    itemCount: 5,
+                    itemSize: 30,
+                    itemBuilder: (context, _) => const Icon(
+                      Icons.star,
+                      color: Colors.amber,
+                    ),
+                    onRatingUpdate: (rating) {
+                      userRating = rating;
+                    },
+                  ),
+                  const SizedBox(height: 15),
+                  ElevatedButton(
+                    onPressed: () async {
+                      if (userRating > 0) {
+                        submitTukangRating(
+                            tukangList[index].tukangId.toString(), userRating);
+                        Navigator.pop(context);
+                        ScaffoldMessenger.of(context).showSnackBar(
+                          const SnackBar(
+                            content: Text('Rating submitted successfully!'),
+                            backgroundColor: Colors.green,
+                          ),
+                        );
+                      } else {
+                        ScaffoldMessenger.of(context).showSnackBar(
+                          const SnackBar(
+                            content: Text(
+                                'Please select a rating before submitting.'),
+                            backgroundColor: Colors.red,
+                          ),
+                        );
+                      }
+                    },
+                    style: ElevatedButton.styleFrom(
+                      backgroundColor: Colors.deepPurpleAccent,
+                      shape: RoundedRectangleBorder(
+                        borderRadius: BorderRadius.circular(10),
+                      ),
+                    ),
+                    child: const Text(
+                      "Submit Rating",
+                      style: TextStyle(color: Colors.white),
+                    ),
+                  ),
+
+                  const SizedBox(height: 20),
+
+                  // Contact Options
                   Row(
                     mainAxisAlignment: MainAxisAlignment.spaceEvenly,
                     children: [
@@ -537,11 +781,11 @@ class _TukangScreenState extends State<TukangScreen> {
                         ),
                         onPressed: () {
                           launchUrlString(
-                              'mailto://+60${tukangList[index].tukangEmail.toString()}');
+                              'mailto:${tukangList[index].tukangEmail.toString()}');
                         },
                       ),
                     ],
-                  )
+                  ),
                 ],
               ),
             ),
@@ -551,53 +795,141 @@ class _TukangScreenState extends State<TukangScreen> {
     );
   }
 
+// Function to Submit Rating
+  void submitTukangRating(String tukangId, double rating) {
+    http.post(
+      Uri.parse('${MyConfig.baseUrl}/api/submit_rating.php'),
+      body: {
+        'tukangid': tukangId,
+        'rating': rating.toString(),
+      },
+    ).then((response) {
+      if (response.statusCode == 200) {
+        var result = jsonDecode(response.body);
+        debugPrint(result.toString());
+        if (result['status'] == 'success') {
+          debugPrint('Rating submitted successfully');
+          loadTukang();
+        } else {
+          debugPrint('Failed to submit rating');
+        }
+      }
+    });
+  }
+
   void showDeleteDialog(int index) {
     TextEditingController passController = TextEditingController();
+    bool isPasswordVisible = false;
+
     showDialog(
       context: context,
       builder: (context) {
-        return AlertDialog(
-          title: const Text('Delete/Update Tukang'),
-          content: Column(
-            mainAxisSize: MainAxisSize.min,
-            children: [
-              Text(tukangList[index].tukangName.toString()),
-              TextField(
-                  controller: passController,
-                  obscureText: true,
-                  decoration: const InputDecoration(
-                    labelText: 'Password',
-                    focusedBorder: OutlineInputBorder(
-                      borderSide: BorderSide(
-                          color: Colors.deepPurpleAccent, width: 2.0),
+        return StatefulBuilder(
+          builder: (context, setState) {
+            return AlertDialog(
+              shape: RoundedRectangleBorder(
+                borderRadius: BorderRadius.circular(16), // Rounded corners
+              ),
+              title: const Row(
+                children: [
+                  Icon(Icons.warning, color: Colors.redAccent, size: 28),
+                  SizedBox(width: 10),
+                  Text(
+                    'Delete/Update Tukang',
+                    style: TextStyle(fontSize: 18, fontWeight: FontWeight.bold),
+                  ),
+                ],
+              ),
+              content: Column(
+                mainAxisSize: MainAxisSize.min,
+                crossAxisAlignment: CrossAxisAlignment.start,
+                children: [
+                  Text(
+                    tukangList[index].tukangName.toString(),
+                    style: const TextStyle(
+                      fontSize: 16,
+                      fontWeight: FontWeight.w600,
+                      color: Colors.black87,
                     ),
-                  )),
-            ],
-          ),
-          actions: [
-            TextButton(
-              child: const Text('Cancel'),
-              onPressed: () {
-                Navigator.pop(context);
-              },
-            ),
-            TextButton(
-              child: const Text('Update'),
-              onPressed: () {
-                Navigator.pop(context);
-                updateTukang(
-                    tukangList[index].tukangId.toString(), passController.text);
-              },
-            ),
-            TextButton(
-              child: const Text('Delete'),
-              onPressed: () async {
-                await deleteTukang(tukangList[index].tukangId.toString(),
-                    passController.text, context);
-                Navigator.pop(context);
-              },
-            ),
-          ],
+                  ),
+                  const SizedBox(height: 12),
+
+                  // Password Field with Visibility Toggle
+                  TextFormField(
+                    controller: passController,
+                    obscureText: !isPasswordVisible,
+                    decoration: InputDecoration(
+                      labelText: 'Enter Password',
+                      prefixIcon: const Icon(Icons.lock,
+                          color: Colors.deepPurpleAccent),
+                      suffixIcon: IconButton(
+                        icon: Icon(
+                          isPasswordVisible
+                              ? Icons.visibility
+                              : Icons.visibility_off,
+                          color: Colors.grey,
+                        ),
+                        onPressed: () {
+                          setState(() {
+                            isPasswordVisible = !isPasswordVisible;
+                          });
+                        },
+                      ),
+                      border: OutlineInputBorder(
+                        borderRadius: BorderRadius.circular(10),
+                      ),
+                      filled: true,
+                      fillColor: Colors.grey[100],
+                    ),
+                  ),
+                ],
+              ),
+              actions: [
+                TextButton(
+                  onPressed: () => Navigator.pop(context),
+                  style: TextButton.styleFrom(foregroundColor: Colors.black54),
+                  child: const Text('Cancel'),
+                ),
+                ElevatedButton.icon(
+                  onPressed: () {
+                    Navigator.pop(context);
+                    updateTukang(
+                      tukangList[index].tukangId.toString(),
+                      passController.text,
+                    );
+                  },
+                  style: ElevatedButton.styleFrom(
+                    backgroundColor: Colors.blueAccent,
+                    shape: RoundedRectangleBorder(
+                      borderRadius: BorderRadius.circular(8),
+                    ),
+                  ),
+                  icon: const Icon(Icons.edit, color: Colors.white),
+                  label: const Text('Update',
+                      style: TextStyle(color: Colors.white)),
+                ),
+                ElevatedButton.icon(
+                  onPressed: () async {
+                    await deleteTukang(
+                      tukangList[index].tukangId.toString(),
+                      passController.text,
+                      context,
+                    );
+                    Navigator.pop(context);
+                  },
+                  style: ElevatedButton.styleFrom(
+                    backgroundColor: Colors.redAccent,
+                    shape: RoundedRectangleBorder(
+                      borderRadius: BorderRadius.circular(8),
+                    ),
+                  ),
+                  icon: const Icon(Icons.delete, color: Colors.white),
+                  label: const Text('Delete',
+                      style: TextStyle(color: Colors.white)),
+                ),
+              ],
+            );
+          },
         );
       },
     );
@@ -675,5 +1007,158 @@ class _TukangScreenState extends State<TukangScreen> {
     } else {
       fav = [];
     }
+  }
+
+  Future<void> showFavTukang() async {
+    if (fav.isEmpty) {
+      ScaffoldMessenger.of(context).showSnackBar(
+        const SnackBar(
+          content: Text('No favorite tukang found'),
+          backgroundColor: Colors.red,
+        ),
+      );
+    }
+    print('${MyConfig.baseUrl}/api/load_fav.php?fav=${fav.toString()}');
+    await http
+        .get(Uri.parse('${MyConfig.baseUrl}/api/load_fav.php?fav=$fav'))
+        .then((response) {
+      print(response.body);
+      var data = jsonDecode(response.body);
+      log(data.toString());
+      if (data['status'] == 'success') {
+        tukangList.clear();
+        data['data'].forEach((tukang) {
+          Tukang t = Tukang.fromJson(tukang);
+          tukangList.add(t);
+        });
+      } else {
+        tukangList.clear();
+        status = "No tukang found";
+      }
+      setState(() {});
+    });
+  }
+
+  void showReportDialog(int index) {
+    TextEditingController reasonController = TextEditingController();
+    final _formKey = GlobalKey<FormState>();
+
+    showDialog(
+      context: context,
+      builder: (context) {
+        return AlertDialog(
+          shape: RoundedRectangleBorder(
+            borderRadius: BorderRadius.circular(16), // Rounded corners
+          ),
+          title: const Row(
+            children: [
+              Icon(Icons.report_problem, color: Colors.redAccent, size: 28),
+              SizedBox(width: 10),
+              Text(
+                'Report Tukang',
+                style: TextStyle(fontSize: 18, fontWeight: FontWeight.bold),
+              ),
+            ],
+          ),
+          content: Form(
+            key: _formKey,
+            child: Column(
+              mainAxisSize: MainAxisSize.min,
+              crossAxisAlignment: CrossAxisAlignment.start,
+              children: [
+                Text(
+                  tukangList[index].tukangName.toString(),
+                  style: const TextStyle(
+                    fontSize: 16,
+                    fontWeight: FontWeight.w600,
+                  ),
+                ),
+                const SizedBox(height: 10),
+                const Text(
+                  'Please provide a reason for reporting this Tukang:',
+                  style: TextStyle(fontSize: 14, color: Colors.black87),
+                ),
+                const SizedBox(height: 10),
+
+                // TextField for Report Reason
+                TextFormField(
+                  controller: reasonController,
+                  maxLines: 3,
+                  decoration: InputDecoration(
+                    hintText: "Enter reason...",
+                    border: OutlineInputBorder(
+                      borderRadius: BorderRadius.circular(10),
+                    ),
+                    filled: true,
+                    fillColor: Colors.grey[100],
+                  ),
+                  validator: (value) {
+                    if (value == null || value.trim().isEmpty) {
+                      return "Reason cannot be empty";
+                    }
+                    return null;
+                  },
+                ),
+              ],
+            ),
+          ),
+          actions: [
+            TextButton(
+              onPressed: () => Navigator.pop(context),
+              style: TextButton.styleFrom(
+                foregroundColor: Colors.black54,
+              ),
+              child: const Text('Cancel'),
+            ),
+            ElevatedButton(
+              onPressed: () {
+                if (_formKey.currentState!.validate()) {
+                  Navigator.pop(context);
+                  reportTukang(
+                    tukangList[index].tukangId.toString(),
+                    reasonController.text.trim(),
+                  );
+                }
+              },
+              style: ElevatedButton.styleFrom(
+                backgroundColor: Colors.redAccent,
+                shape: RoundedRectangleBorder(
+                  borderRadius: BorderRadius.circular(8),
+                ),
+              ),
+              child:
+                  const Text('Report', style: TextStyle(color: Colors.white)),
+            ),
+          ],
+        );
+      },
+    );
+  }
+
+  Future<void> reportTukang(String tukangid, String trim) async {
+    await http
+        .post(Uri.parse("${MyConfig.baseUrl}/api/report_tukang.php"), body: {
+      'tukangid': tukangid,
+      'reason': trim,
+    }).then((response) {
+      var data = jsonDecode(response.body);
+      print(response.body);
+      log(data.toString());
+      if (data['status'] == 'success') {
+        ScaffoldMessenger.of(context).showSnackBar(
+          const SnackBar(
+            content: Text('Tukang reported successfully'),
+            backgroundColor: Colors.green,
+          ),
+        );
+      } else {
+        ScaffoldMessenger.of(context).showSnackBar(
+          const SnackBar(
+            content: Text('Failed to report tukang'),
+            backgroundColor: Colors.red,
+          ),
+        );
+      }
+    });
   }
 }

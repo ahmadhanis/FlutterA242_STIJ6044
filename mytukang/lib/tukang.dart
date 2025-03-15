@@ -9,6 +9,7 @@ class Tukang {
   String? tukangDatereg;
   String? tukangOtp;
   String? tukangPass;
+  String? tukangRating;
 
   Tukang(
       {this.tukangId,
@@ -20,10 +21,11 @@ class Tukang {
       this.tukangLocation,
       this.tukangDatereg,
       this.tukangOtp,
-      this.tukangPass});
+      this.tukangPass,
+      this.tukangRating});
 
   Tukang.fromJson(Map<String, dynamic> json) {
-    tukangId = json['tukang_id'];
+    tukangId = json['tukang_id'].toString();
     tukangName = json['tukang_name'];
     tukangField = json['tukang_field'];
     tukangDesc = json['tukang_desc'];
@@ -33,6 +35,7 @@ class Tukang {
     tukangDatereg = json['tukang_datereg'];
     tukangOtp = json['tukang_otp'];
     tukangPass = json['tukang_pass'];
+    tukangRating = json['tukang_rating'];
   }
 
   Map<String, dynamic> toJson() {
@@ -47,6 +50,7 @@ class Tukang {
     data['tukang_datereg'] = tukangDatereg;
     data['tukang_otp'] = tukangOtp;
     data['tukang_pass'] = tukangPass;
+    data['tukang_rating'] = tukangRating;
     return data;
   }
 }
