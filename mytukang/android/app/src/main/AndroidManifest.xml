@@ -1,13 +1,14 @@
 <manifest xmlns:android="http://schemas.android.com/apk/res/android">
 <uses-permission android:name="ANDROID.PERMISSION.READ_EXTERNAL_STORAGE"/>
 <uses-permission android:name="ANDROID.PERMISSION.WRITE_EXTERNAL_STORAGE"/>
-<uses-permission android:name="ANDROID.PERMISSION.INTERNET"/>
+<uses-permission android:name="android.permission.INTERNET" />
 <uses-permission android:name="ANDROID.PERMISSION.ACCESS_NETWORK_STATE"/>
 <uses-permission android:name="ANDROID.PERMISSION.ACCESS_WIFI_STATE"/>
     <application
         android:label="MyTukang"
         android:name="${applicationName}"
-        android:icon="@mipmap/mytukang">
+        android:icon="@mipmap/mytukang"
+        android:usesCleartextTraffic="true">
         <activity
             android:name=".MainActivity"
             android:exported="true"

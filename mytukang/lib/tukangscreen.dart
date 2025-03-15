@@ -180,7 +180,7 @@ class _TukangScreenState extends State<TukangScreen> {
                         padding: const EdgeInsets.all(4),
                         gridDelegate: SliverGridDelegateWithFixedCrossAxisCount(
                           crossAxisCount: screenWidth < 600 ? 1 : 2,
-                          childAspectRatio: screenWidth < 600 ? 2.7 : 3.0,
+                          childAspectRatio: screenWidth < 600 ? 2.4 : 3.0,
                           crossAxisSpacing: 4,
                           mainAxisSpacing: 4,
                         ),
@@ -206,8 +206,8 @@ class _TukangScreenState extends State<TukangScreen> {
                                       borderRadius: BorderRadius.circular(8),
                                       child: Image.network(
                                         "${MyConfig.baseUrl}/assets/${tukangList[index].tukangId}.png",
-                                        width: 110,
-                                        height: 110,
+                                        width: 120,
+                                        height: 120,
                                         fit: BoxFit.fill,
                                       ),
                                     ),
@@ -261,7 +261,7 @@ class _TukangScreenState extends State<TukangScreen> {
                                               children: [
                                                 const Icon(Icons.work_outline,
                                                     size: 16,
-                                                    color: Colors.deepPurple),
+                                                    color: Colors.blueGrey),
                                                 const SizedBox(width: 6),
                                                 Text(
                                                   tukangList[index]
@@ -458,126 +458,157 @@ class _TukangScreenState extends State<TukangScreen> {
   // Modern bottom sheet for search filters
   void showSearchDialog() {
     showDialog(
-        context: context,
-        builder: (context) {
-          return StatefulBuilder(builder: (context, setState) {
-            return AlertDialog(
-                title: const Text('Search'),
-                content: Column(
+      context: context,
+      builder: (context) {
+        return StatefulBuilder(
+          builder: (context, setState) {
+            return Dialog(
+              shape: RoundedRectangleBorder(
+                borderRadius: BorderRadius.circular(20),
+              ),
+              child: Padding(
+                padding: const EdgeInsets.all(20.0),
+                child: Column(
                   mainAxisSize: MainAxisSize.min,
+                  crossAxisAlignment: CrossAxisAlignment.start,
                   children: [
-                    Column(
-                      crossAxisAlignment: CrossAxisAlignment.start,
-                      children: [
-                        const Text(
-                          'Select Field', // Label for the dropdown
-                          style: TextStyle(
-                            fontSize: 16,
-                            fontWeight: FontWeight.bold,
-                            color: Colors.black87,
-                          ),
-                        ),
-                        const SizedBox(
-                            height:
-                                5), // Add some spacing between the label and the dropdown
-                        Container(
-                          height: 60,
-                          padding: const EdgeInsets.symmetric(horizontal: 15),
-                          decoration: BoxDecoration(
-                            border: Border.all(color: Colors.grey),
-                            borderRadius: BorderRadius.circular(5),
-                          ),
-                          child: DropdownButton(
-                            value: selectedField,
-                            underline: const SizedBox(),
-                            isExpanded: true,
-                            icon: const Icon(Icons.keyboard_arrow_down),
-                            items: fields.map((String items) {
-                              return DropdownMenuItem(
-                                value: items,
-                                child: Text(items),
-                              );
-                            }).toList(),
-                            onChanged: (String? newValue) {
+                    // Dialog Title
+                    const Text(
+                      'Search Filters',
+                      style: TextStyle(
+                        fontSize: 20,
+                        fontWeight: FontWeight.bold,
+                        color: Colors.blueGrey,
+                      ),
+                    ),
+                    const SizedBox(height: 10),
+
+                    // Select Field
+                    const Text(
+                      'Select Field',
+                      style:
+                          TextStyle(fontSize: 16, fontWeight: FontWeight.w600),
+                    ),
+                    const SizedBox(height: 5),
+                    Container(
+                      padding: const EdgeInsets.symmetric(horizontal: 12),
+                      decoration: BoxDecoration(
+                        color: Colors.grey[100],
+                        borderRadius: BorderRadius.circular(10),
+                        border: Border.all(color: Colors.blueGrey),
+                      ),
+                      child: DropdownButtonHideUnderline(
+                        child: DropdownButton<String>(
+                          value: selectedField,
+                          isExpanded: true,
+                          icon: const Icon(Icons.keyboard_arrow_down,
+                              color: Colors.blueGrey),
+                          items: fields.map((String items) {
+                            return DropdownMenuItem(
+                              value: items,
+                              child: Text(items),
+                            );
+                          }).toList(),
+                          onChanged: (String? newValue) {
+                            setState(() {
                               selectedField = newValue!;
-                              setState(() {});
-                            },
-                          ),
+                            });
+                          },
                         ),
-                        const SizedBox(
-                          height: 10,
-                        ),
-                      ],
+                      ),
                     ),
-                    Column(
-                      crossAxisAlignment: CrossAxisAlignment.start,
-                      children: [
-                        const Text(
-                          'Select District', // Label for the dropdown
-                          style: TextStyle(
-                            fontSize: 16,
-                            fontWeight: FontWeight.bold,
-                            color: Colors.black87,
-                          ),
-                        ),
-                        const SizedBox(
-                            height:
-                                5), // Add some spacing between the label and the dropdown
-                        Container(
-                          height: 60,
-                          padding: const EdgeInsets.symmetric(horizontal: 15),
-                          decoration: BoxDecoration(
-                            border: Border.all(color: Colors.grey),
-                            borderRadius: BorderRadius.circular(5),
-                          ),
-                          child: DropdownButton(
-                            value: selectedDistrict,
-                            underline: const SizedBox(),
-                            isExpanded: true,
-                            icon: const Icon(Icons.keyboard_arrow_down),
-                            items: districts.map((String items) {
-                              return DropdownMenuItem(
-                                value: items,
-                                child: Text(items),
-                              );
-                            }).toList(),
-                            onChanged: (String? newValue) {
+                    const SizedBox(height: 15),
+
+                    // Select District
+                    const Text(
+                      'Select District',
+                      style:
+                          TextStyle(fontSize: 16, fontWeight: FontWeight.w600),
+                    ),
+                    const SizedBox(height: 5),
+                    Container(
+                      padding: const EdgeInsets.symmetric(horizontal: 12),
+                      decoration: BoxDecoration(
+                        color: Colors.grey[100],
+                        borderRadius: BorderRadius.circular(10),
+                        border: Border.all(color: Colors.blueGrey),
+                      ),
+                      child: DropdownButtonHideUnderline(
+                        child: DropdownButton<String>(
+                          value: selectedDistrict,
+                          isExpanded: true,
+                          icon: const Icon(Icons.keyboard_arrow_down,
+                              color: Colors.blueGrey),
+                          items: districts.map((String items) {
+                            return DropdownMenuItem(
+                              value: items,
+                              child: Text(items),
+                            );
+                          }).toList(),
+                          onChanged: (String? newValue) {
+                            setState(() {
                               selectedDistrict = newValue!;
-                              setState(() {});
+                            });
+                          },
+                        ),
+                      ),
+                    ),
+                    const SizedBox(height: 20),
+
+                    // Action Buttons
+                    Row(
+                      mainAxisAlignment: MainAxisAlignment.spaceBetween,
+                      children: [
+                        Expanded(
+                          child: ElevatedButton.icon(
+                            onPressed: () {
+                              loadTukang();
+                              Navigator.pop(context);
                             },
+                            icon: const Icon(Icons.search, color: Colors.white),
+                            label: const Text('Search',
+                                style: TextStyle(color: Colors.white)),
+                            style: ElevatedButton.styleFrom(
+                              backgroundColor: Colors.blueGrey,
+                              shape: RoundedRectangleBorder(
+                                borderRadius: BorderRadius.circular(10),
+                              ),
+                              padding: const EdgeInsets.symmetric(vertical: 12),
+                            ),
                           ),
                         ),
-                        const SizedBox(
-                          height: 10,
+                        const SizedBox(width: 10),
+                        Expanded(
+                          child: ElevatedButton.icon(
+                            onPressed: () {
+                              selectedDistrict = 'All';
+                              selectedField = 'All';
+                              loadTukang();
+                              Navigator.pop(context);
+                            },
+                            icon:
+                                const Icon(Icons.refresh, color: Colors.white),
+                            label: const Text('Reset',
+                                style: TextStyle(color: Colors.white)),
+                            style: ElevatedButton.styleFrom(
+                              backgroundColor: Colors.grey,
+                              shape: RoundedRectangleBorder(
+                                borderRadius: BorderRadius.circular(10),
+                              ),
+                              padding: const EdgeInsets.symmetric(vertical: 12),
+                            ),
+                          ),
                         ),
-                        Row(
-                          mainAxisAlignment: MainAxisAlignment.spaceAround,
-                          children: [
-                            ElevatedButton(
-                                onPressed: () {
-                                  loadTukang();
-                                  Navigator.pop(context);
-                                },
-                                child: const Text('Search')),
-                            ElevatedButton(
-                                onPressed: () {
-                                  selectedDistrict = 'All';
-                                  selectedField = 'All';
-                                  loadTukang();
-                                  Navigator.pop(context);
-                                },
-                                child: const Text('Reset'))
-                          ],
-                        )
                       ],
-                    ),
-                    const SizedBox(
-                      height: 10,
                     ),
                   ],
-                ));
-          });
-        });
+                ),
+              ),
+            );
+          },
+        );
+      },
+    );
   }
 
   // Modern dialog for displaying tukang details
@@ -734,7 +765,7 @@ class _TukangScreenState extends State<TukangScreen> {
                       }
                     },
                     style: ElevatedButton.styleFrom(
-                      backgroundColor: Colors.deepPurpleAccent,
+                      backgroundColor: Colors.blueAccent,
                       shape: RoundedRectangleBorder(
                         borderRadius: BorderRadius.circular(10),
                       ),
@@ -860,8 +891,8 @@ class _TukangScreenState extends State<TukangScreen> {
                     obscureText: !isPasswordVisible,
                     decoration: InputDecoration(
                       labelText: 'Enter Password',
-                      prefixIcon: const Icon(Icons.lock,
-                          color: Colors.deepPurpleAccent),
+                      prefixIcon:
+                          const Icon(Icons.lock, color: Colors.blueAccent),
                       suffixIcon: IconButton(
                         icon: Icon(
                           isPasswordVisible
